@@ -3,7 +3,7 @@ name: Docker Build and Deploy
 on:
   push:
     branches:
-      - main  # La pipeline se déclenche sur la branche principale
+      - main  # Déclenchement sur la branche principale
 
 jobs:
   build-and-push:
@@ -21,17 +21,22 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    # Construction de l'image Docker
-    - name: Build Docker Image
+    # Construction et taggage de l'image Docker
+    - name: Build Docker Image with Commit SHA Tag
+      env:
+        COMMIT_SHA: ${{ github.sha }}
       run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/my-python-app:latest .
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/my-python-app:${COMMIT_SHA} .
+        docker tag ${{ secrets.DOCKER_USERNAME }}/my-python-app:${COMMIT_SHA} ${{ secrets.DOCKER_USERNAME }}/my-python-app:latest
 
-    # Push de l'image dans le Docker Registry
-    - name: Push Docker Image
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/my-python-app:latest
+    # Push des tags dans le Docker Registry
+    - name: Push Docker Images
+      run: |
+        docker push ${{ secrets.DOCKER_USERNAME }}/my-python-app:${{ github.sha }}
+        docker push ${{ secrets.DOCKER_USERNAME }}/my-python-app:latest
 
   deploy:
-    needs: build-and-push  # Ce job s'exécute après le build
+    needs: build-and-push
     runs-on: ubuntu-latest
 
     steps:
@@ -43,4 +48,4 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          docker service update --image ${{ secrets.DOCKER_USERNAME }}/my-python-app:latest my-python-service
+          docker service update --image ${{ secrets.DOCKER_USERNAME }}/my-python-app:${{ github.sha }} my-python-service
