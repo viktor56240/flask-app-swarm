@@ -36,7 +36,7 @@ jobs:
         docker push ${{ secrets.DOCKER_USERNAME }}/my-python-app:latest
 
   deploy:
-    needs: build
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
       -
