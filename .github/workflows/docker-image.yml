@@ -36,16 +36,15 @@ jobs:
         docker push ${{ secrets.DOCKER_USERNAME }}/my-python-app:latest
 
   deploy:
-    needs: build-and-push
+    needs: build
     runs-on: ubuntu-latest
-
     steps:
-    # Connexion SSH au cluster Docker Swarm
-    - name: Deploy to Docker Swarm
-      uses: appleboy/ssh-action@v0.1.10
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          docker service update --image ${{ secrets.DOCKER_USERNAME }}/my-python-app:${{ github.sha }} my-python-service
+      -
+        name: Update service image on Swarm manager
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SWARM_MANAGER_HOST }}
+          username: ${{ secrets.SWARM_MANAGER_USERNAME }}
+          password: ${{ secrets.SWARM_MANAGER_PASSWORD }}
+          port: ${{ secrets.SWARM_MANAGER_PORT }}
+          script: docker service update --image ${{ secrets.DOCKERHUB_USERNAME }}/flask-app-swarm:${{ github.sha }} flask-app
