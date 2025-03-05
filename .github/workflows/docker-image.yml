@@ -47,4 +47,4 @@ jobs:
           username: ${{ secrets.SWARM_MANAGER_USERNAME }}
           password: ${{ secrets.SWARM_MANAGER_PASSWORD }}
           port: ${{ secrets.SWARM_MANAGER_PORT }}
-          script: docker service update --image viktormadelaine/my-python-app:${{ github.sha }} --replicas=4 partiels
+          script: docker service update --image viktormadelaine/my-python-app:${{ github.sha }} --replicas=4 partiels_app
